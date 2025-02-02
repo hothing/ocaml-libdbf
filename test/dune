@@ -1,0 +1,7 @@
+(tests
+ (names test_base test_base2 test_memo test_memo2)
+ (libraries alcotest bitstring dbf)
+ (preprocess
+  (pps ppx_bitstring))
+ (deps
+  (glob_files_rec "samples/*")))
