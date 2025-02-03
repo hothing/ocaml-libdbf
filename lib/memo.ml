@@ -8,48 +8,35 @@ type mem_block_type =
 let calculate_chunk_offset memo_block_size index = index * memo_block_size
 
 (******* dBase III         ********)
-let check_rep_char m n st c =
-  let pos, cnt = st in
-  if c = m then (pos, cnt + 1) else if cnt < n then (pos + 1, 0) else st
 
-let check_rep_char2 m n c st =
-  let pos, cnt = st in
-  if c = m then (pos, cnt + 1) else if cnt < n then (pos + 1, 0) else st
+let bytes_rscan_eob bs =
+  let n = Bytes.length bs in
+  let rec _rscan_eob bs p =
+    if p > 0 then
+      if (Bytes.get_int16_le bs p) = 0x1A1A then p 
+      else _rscan_eob bs (p - 1)
+    else -1
+  in  
+  _rscan_eob bs n
 
-let check_rep_char_rf m n c st =
-  let pos, cnt = st in
-  if c = m then (pos + 1, cnt + 1) else if cnt < n then (pos + 1, 0) else st
-
-let scan_end_of_block str =
-  let pos, c = String.fold_left (check_rep_char '\026' 2) (0, 0) str in
-  if c >= 2 then pos + 1 else 0
-
-let str_rscan_rep ch n str =
-  let pos, c = String.fold_right (check_rep_char_rf ch n) str (0, 0) in
-  if c >= n then (String.length str - pos, true) else (0, false)
-
-let bytes_rscan_rep ch n bs =
-  let pos, c = Bytes.fold_right (check_rep_char_rf ch n) bs (0, 0) in
-  if c >= n then (Bytes.length bs - pos, true) else (0, false)
 
 let rec read_cblock_str n data pos src =
-  if String.length src >= pos + n then
-    let ss = String.sub src pos n in
-    let data' = data ^ ss in
-    let slen, ok = str_rscan_rep '\026' 2 data' in
-    if slen > 0 && ok then String.sub data' 0 slen
-    else if ok then data
-    else read_cblock_str n data' (pos + n) src
+  if Bytes.length src >= pos + n then
+    let ss = Bytes.sub src pos n in
+    let p = bytes_rscan_eob ss in
+    if p >= 0 then 
+      Bytes.cat data (Bytes.sub ss 0 p) 
+    else 
+      read_cblock_str n (Bytes.cat data ss) (pos + n) src
   else data
 
 let rec read_cblock_chn n chn pos data =
   let rlen = In_channel.input chn data pos n in
   if rlen >= 0 then
-    let slen, ok = bytes_rscan_rep '\026' 2 data in
-    if slen > 0 && ok then Bytes.sub_string data 0 slen
-    else if ok then Bytes.to_string data
+    let p = bytes_rscan_eob data in
+    if p >= 0 then Bytes.sub data 0 p
     else read_cblock_chn n chn (pos + rlen) data
-  else Bytes.to_string data
+  else data
 
 let read_block_db3 (db : Base.dbf_file) index =
   match db.memo with
@@ -60,7 +47,7 @@ let read_block_db3 (db : Base.dbf_file) index =
         read_cblock_chn memo_block_size md 0
           (Bytes.make (memo_block_size * 4) '\026')
       in
-      Some (Bitstring.bitstring_of_string data)
+      Some (Bytes.to_string data |> Bitstring.bitstring_of_string)
   | None -> None
 
 (******* dBase IV          ********)

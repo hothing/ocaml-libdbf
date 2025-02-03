@@ -7,7 +7,7 @@
 (version 0.1.3)
 
 (source
- (github hothing/libdbf))
+ (github hothing/ocaml-libdbf))
 
 (authors "Mykhayl Puzanov <pum@example.com>")
 
@@ -15,14 +15,14 @@
  "Mykhayl Puzanov <pum@example.com>"
  "John Doe <john.doe@example.com>")
 
-(license BSD-2-Clause)
+(license GPLv3)
 
-(documentation https://mysite.me/libdbf/documentation)
+(documentation https://github.com/hothing/ocaml-libdbf/doc)
 
 (package
  (name dbf)
  (synopsis "A DBF reader library")
- (description "A DBF reader library with MEMO support and seqental record access")
+ (description "A DBF reader library with MEMO support and sequental record access")
  (depends ocaml)
  (tags
   ("xBASE" "DBF" "data access")))
