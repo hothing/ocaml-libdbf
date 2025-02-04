@@ -9,7 +9,6 @@ authors: ["Mykhayl Puzanov <pum@example.com>"]
 license: "GPL-3.0-or-later"
 tags: ["xBASE" "DBF" "data access"]
 homepage: "https://github.com/hothing/ocaml-libdbf"
-doc: "https://github.com/hothing/ocaml-libdbf/doc"
 bug-reports: "https://github.com/hothing/ocaml-libdbf/issues"
 depends: [
   "dune" {>= "3.17"}

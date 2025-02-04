@@ -16,7 +16,7 @@
 
 (license GPL-3.0-or-later)
 
-(documentation https://github.com/hothing/ocaml-libdbf/doc)
+;(documentation https://github.com/hothing/ocaml-libdbf/doc)
 
 (package
  (name dbf)
