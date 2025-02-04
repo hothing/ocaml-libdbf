@@ -12,16 +12,15 @@
 (authors "Mykhayl Puzanov <pum@example.com>")
 
 (maintainers
- "Mykhayl Puzanov <pum@example.com>"
- "John Doe <john.doe@example.com>")
+ "Mykhayl Puzanov <pum@example.com>")
 
-(license GPLv3)
+(license GPL-3.0-or-later)
 
 (documentation https://github.com/hothing/ocaml-libdbf/doc)
 
 (package
  (name dbf)
- (synopsis "A DBF reader library")
+ (synopsis "A DBF/DBT files reader library")
  (description "A DBF reader library with MEMO support and sequental record access")
  (depends ocaml)
  (tags
