@@ -1,6 +1,6 @@
 (library
- (public_name dbf)
- (name dbf)
+ (public_name dbase4)
+ (name dbase4)
  (preprocess
   (pps ppx_bitstring ppx_cstruct))
  (libraries bitstring cstruct))

@@ -1,10 +1,10 @@
 (lang dune 3.17)
 
-(name dbf)
+(name dbase4)
 
 (generate_opam_files true)
 
-(version 0.1.3)
+(version 0.1.4)
 
 (source
  (github hothing/ocaml-libdbf))
@@ -19,10 +19,10 @@
 ;(documentation https://github.com/hothing/ocaml-libdbf/doc)
 
 (package
- (name dbf)
+ (name dbase4)
  (synopsis "A DBF/DBT files reader library")
  (description "A DBF reader library with MEMO support and sequental record access")
- (depends ocaml)
+ (depends ocaml cstruct ppx_cstruct bitstring ppx_bitstring (odoc (= :with-doc)) (alcotest (= :with-test)))
  (tags
   ("xBASE" "DBF" "data access")))
 
