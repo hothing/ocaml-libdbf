@@ -104,8 +104,6 @@ let decode_hdr0 cst =
     }
   else raise (DbfDataInvalid "DBF format is not V3+")
 
-let bit_test x mask = x land mask = mask
-
 let fixup_str bstr =
   let s = String.map (fun c -> if c <= '\t' then ' ' else c) bstr in
   String.trim s
@@ -160,14 +158,10 @@ let decode_struct hdr_size t =
   in
   loop [] 0 |> calculate_fields_offset
 
-let calculate_rec_size (flds : dbf_field_descriptor array) =
-  let pure_len =
-    Array.fold_left (fun a (fd : dbf_field_descriptor) -> a + fd.flen) 0 flds
-  in
-  pure_len + 1
-
+(*
 let dbf_has_memo (flds : dbf_field_descriptor list) =
   List.exists (fun f -> match f.ftype with Memo -> true | _ -> false) flds
+*)
 
 let dbf_memo_exists filename =
   let bfn = Filename.chop_extension filename in
