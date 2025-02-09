@@ -1,9 +1,9 @@
-open Dbf.Base
-open Dbf.Data
-open Dbf.Memo
+open Dbase4.Base
+open Dbase4.Data
+open Dbase4.Memo
 
 let test_read_memo_field_sbb () =
-  let dbf = Dbf.Base.dbf_open "samples/memo/test_02.dbf" in
+  let dbf = Dbase4.Base.dbf_open "samples/memo/test_02.dbf" in
   let f_sbb = create_int_rider_by_name dbf "SUBBLOCKS" in
   let db = ref (db_go_top dbf) in
   let count = ref 0 in
@@ -22,7 +22,7 @@ let test_read_memo_field_sbb () =
   dbf_close dbf
 
 let test_read_memo_field_uda () =
-  let dbf = Dbf.Base.dbf_open "samples/memo/test_02.dbf" in
+  let dbf = Dbase4.Base.dbf_open "samples/memo/test_02.dbf" in
   let f_sbb = create_int_rider_by_name dbf "UDA" in
   let db = ref (db_go_top dbf) in
   let count = ref 0 in

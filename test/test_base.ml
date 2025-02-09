@@ -1,8 +1,8 @@
 (* The tests *)
 
 let test_read_rec () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test.dbf" in
   let f_id = create_int_rider dbf 0 in
   let f_name = create_string_rider dbf 1 in
@@ -14,7 +14,7 @@ let test_read_rec () =
   dbf_close dbf
 
 let test_read_rec_fail () =
-  let open Dbf.Base in
+  let open Dbase4.Base in
   let dbf = dbf_open "samples/test.dbf" in
   (try
      let _ = db_goto dbf 100 |> read_record in
@@ -23,8 +23,8 @@ let test_read_rec_fail () =
   dbf_close dbf
 
 let test_read_rec_5 () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test05.dbf" in
   let f_id = create_int_rider dbf 0 in
   let f_objtyp = create_int_rider dbf 1 in
@@ -41,8 +41,8 @@ let bstring_to_hex str =
   String.fold_left (fun t c -> t ^ Printf.sprintf "%0X." (Char.code c)) "" str
 
 let test_read_rec_5_1 () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test05.dbf" in
   let f_id = create_int_rider dbf 0 in
   let f_objtyp = create_int_rider dbf 1 in

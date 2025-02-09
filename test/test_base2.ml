@@ -1,8 +1,8 @@
 (* tests *)
 
 let test_find_record_1 () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test05.dbf" |> db_go_top in
   let f_id = create_int_rider dbf 0 in
   let res = db_find_record_simple (db_go_top dbf) f_id 5 in
@@ -20,8 +20,8 @@ let test_find_record_1 () =
   dbf_close dbf
 
 let test_find_record_2 () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test05.dbf" |> db_go_top in
   let f_id = create_int_rider dbf 0 in
   let res = db_find_record_simple dbf f_id 1 in
@@ -31,8 +31,8 @@ let test_find_record_2 () =
   dbf_close dbf
 
 let test_find_record_3 () =
-  let open Dbf.Base in
-  let open Dbf.Data in
+  let open Dbase4.Base in
+  let open Dbase4.Data in
   let dbf = dbf_open "samples/test05.dbf" |> db_go_top in
   let f_utyp = create_int_rider_by_name dbf "UNITTYP" in
   let db_repos dbf r = match r with Some(id) -> db_goto dbf (id + 1) | None -> dbf in

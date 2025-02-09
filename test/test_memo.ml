@@ -1,10 +1,10 @@
 (* The tests *)
-open Dbf.Base
-open Dbf.Data
-open Dbf.Memo
+open Dbase4.Base
+open Dbase4.Data
+open Dbase4.Memo
 
 let dbf_data_type =
-  let pp_dbf_data_type ppf x = Fmt.pf ppf "%S" (Dbf.Data.ftype_to_string x) in
+  let pp_dbf_data_type ppf x = Fmt.pf ppf "%S" (ftype_to_string x) in
   Alcotest.testable pp_dbf_data_type ( = )
 
 let int_ge =
@@ -16,7 +16,7 @@ let int_le =
   Alcotest.testable pp_int_ge ( >= )
   
 let test_open_db_memo () =
-  let dbf = Dbf.Base.dbf_open "samples/memo/test_02.dbf" in
+  let dbf = dbf_open "samples/memo/test_02.dbf" in
   Alcotest.(check string) "field name" "UDA" dbf.info.fields.(5).name;
   Alcotest.(check dbf_data_type) "field UDA type" Memo dbf.info.fields.(5).ftype;
   Alcotest.(check string) "field name" "SUBBLOCKS" dbf.info.fields.(6).name;
@@ -25,7 +25,7 @@ let test_open_db_memo () =
   dbf_close dbf
 
 let test_read_memo_field () =
-  let dbf = Dbf.Base.dbf_open "samples/memo/test_02.dbf" in
+  let dbf = dbf_open "samples/memo/test_02.dbf" in
   let f_sbb = create_int_rider_by_name dbf "SUBBLOCKS" in
   let drec = db_go_top dbf |> read_record in
   Alcotest.(check int) "MEMO index" 1 (f_sbb drec);
@@ -35,7 +35,7 @@ let test_read_memo_field () =
   dbf_close dbf
   
 let test_read_memo_field_in_loop () =
-    let dbf = Dbf.Base.dbf_open "samples/memo/test_02.dbf" in
+    let dbf = dbf_open "samples/memo/test_02.dbf" in
     let f_sbb = create_int_rider_by_name dbf "SUBBLOCKS" in
     let db = ref (db_go_top dbf) in
     let count = ref 0 in
