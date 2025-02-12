@@ -1,5 +1,13 @@
-type dbf_info = {
-  version : int;
+type dbf_file = {
+  name : string;
+  fin  : in_channel;
+  memo : in_channel option;
+  info : dbf_info;
+  cri  : int; (* current record index *)
+}
+
+and dbf_info = {
+  version : dbfile_format;
   mdate : date;
   num_records : int;
   hdr_size : int;
@@ -28,15 +36,7 @@ and dbf_data_type =
   | Memo
   | General of int
 
-type dbf_file = {
-  name : string;
-  fin  : in_channel;
-  memo : in_channel option;
-  info : dbf_info;
-  cri  : int; (* current record index *)
-}
-
-type dbfile_format =
+and dbfile_format =
   | DBASE2
   | DBASE3_no_memo
   | DBASE3_with_memo
@@ -81,16 +81,22 @@ end
 
 exception DbfDataInvalid of string
 
-let check_format_v3 = function
-  | 0x2 | 0x3 | 0x30 | 0x31 | 0x32 | 0x43 | 0x63 | 0x83 | 0x8B | 0xCB | 0xE5
-  | 0xF5 | 0xFB ->
-      true
-  | _ -> false
+let dbfile_format_opt = function
+  | 0x3 -> Some(DBASE3_no_memo)
+  | 0x30 -> Some(VisualFoxPro)
+  | 0x31 -> Some(VisualFoxPro_autoincrement)
+  | 0x32 -> Some(VisualFoxPro_Varbinary)
+  | 0x43 -> Some(DBASE4_SQL_table_files_no_memo)
+  | 0x63 -> Some(DBASE4_SQL_system_files_no_memo)
+  | 0x83 -> Some(DBASE3_with_memo)
+  | 0x8B -> Some(DBASE4_with_memo)
+  | 0xCB -> Some(DBASE4_SQL_table_files_with_memo)
+  | _ -> None
 
 let decode_hdr0 cst =
-  if check_format_v3 (Header.get_t_version cst) then
-    {
-      version = Header.get_t_version cst;
+  match dbfile_format_opt (Header.get_t_version cst) with
+  | Some ver -> {
+      version = ver;
       mdate =
         { year = 1900 + (Header.get_t_mdate_year cst);
           month = (Header.get_t_mdate_month cst);
@@ -101,7 +107,7 @@ let decode_hdr0 cst =
       rec_size = Header.get_t_rec_size cst;
       fields = [||];
     }
-  else raise (DbfDataInvalid "DBF format is not V3+")
+  | None -> raise (DbfDataInvalid "DBF format is not V3+")
 
 let fixup_str bstr =
   let s = String.map (fun c -> if c <= '\t' then ' ' else c) bstr in
@@ -157,10 +163,10 @@ let decode_struct hdr_size t =
   in
   loop [] 0 |> calculate_fields_offset
 
-let dbf_has_memo_fields dbf =
+let db_has_memo_fields dbf =
   Array.exists (fun f -> match f.ftype with Memo -> true | _ -> false) dbf.info.fields  
 
-let dbf_memo_exists filename =
+let db_memo_exists filename =
   let bfn = Filename.chop_extension filename in
   let mfx = [ bfn ^ ".DBT"; bfn ^ ".dbt" ] in
   List.find_opt (fun fn -> Sys.file_exists fn) mfx
@@ -179,7 +185,7 @@ let dbf_open filename =
   let _ = In_channel.seek fin (Int64.of_int hsz) in
   let fields = read_chunk fin fsz |> decode_struct fsz |> Array.of_list in
   let _ = In_channel.seek fin (Int64.of_int hdr0.hdr_size) in
-  let moin = (match (dbf_memo_exists filename) with
+  let moin = (match (db_memo_exists filename) with
       | Some mn -> Some(In_channel.open_bin mn)
       | None -> None)
   in   
@@ -261,14 +267,3 @@ let db_find_record_simple dbf field_rider value =
   let pred drec = (field_rider drec) = value in
   db_find_record dbf pred
 
-let dbfile_format_of_byte = function
-  | 0x3 -> DBASE3_no_memo
-  | 0x30 -> VisualFoxPro
-  | 0x31 -> VisualFoxPro_autoincrement
-  | 0x32 -> VisualFoxPro_Varbinary
-  | 0x43 -> DBASE4_SQL_table_files_no_memo
-  | 0x63 -> DBASE4_SQL_system_files_no_memo
-  | 0x83 -> DBASE3_with_memo
-  | 0x8B -> DBASE4_with_memo
-  | 0xCB -> DBASE4_SQL_table_files_with_memo
-  | _ -> raise (DbfDataInvalid "Unknown dbf format")

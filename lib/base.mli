@@ -9,7 +9,7 @@ type dbf_file = {
 
 (** Type [dbf_info] describes the DBF file structure  *)
 and dbf_info = {               
-  version : int; (** version/format of the database *)
+  version : dbfile_format; (** version/format of the database *)
   mdate : date; (** modification date *)
   num_records : int; (** number of records (include deleted) *)
   hdr_size : int; (** header size (in bytes) of the database file *)
@@ -43,7 +43,7 @@ and dbf_data_type =
 
 
 (** *)
-type dbfile_format =
+and dbfile_format =
   | DBASE2
   | DBASE3_no_memo
   | DBASE3_with_memo
@@ -79,6 +79,5 @@ val db_find_record :
   dbf_file -> (Bitstring.bitstring option -> bool) -> int option
 val db_find_record_simple :
   dbf_file -> (Bitstring.bitstring option -> 'a) -> 'a -> int option
-val dbfile_format_of_byte : int -> dbfile_format
 
-val dbf_has_memo_fields : dbf_file -> bool
+  val db_has_memo_fields : dbf_file -> bool

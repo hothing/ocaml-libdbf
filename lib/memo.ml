@@ -68,7 +68,7 @@ let load_memo_internal rider (db : Base.dbf_file) index =
   memo_to_dbval (rider db index)
 
 let load_memo (db : Base.dbf_file) index =
-  match Base.dbfile_format_of_byte db.info.version with
+  match db.info.version with
   | DBASE3_with_memo ->
       load_memo_internal read_block_db3 db index
   | DBASE4_with_memo -> 
