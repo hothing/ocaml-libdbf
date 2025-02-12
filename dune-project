@@ -4,7 +4,7 @@
 
 (generate_opam_files true)
 
-(version 0.1.4)
+(version 0.1.5)
 
 (source
  (github hothing/ocaml-libdbf))

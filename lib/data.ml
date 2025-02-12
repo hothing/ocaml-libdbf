@@ -1,14 +1,5 @@
 open Base
 
-type db_value =
-  | DbString of string
-  | DbNumber of int64
-  | DbLogical of bool
-  | DbMemoIndex of int
-  | DbDate of int64
-  | DbFloat of float
-  | DbTimestamp of int64
-
 (* low-level field rider/getter*)
 
 let bs_to_int offset len bs =
@@ -196,22 +187,3 @@ let create_bool_rider_by_name (db : dbf_file) fieldname =
   | Some id -> create_bool_rider db id
   | None -> raise (DbfDataInvalid "Fieldname not found")
     
-let db_value_type_str ft =
-  match ft with
-  | DbDate _ -> "DATE"
-  | DbFloat _ -> "FLOAT"
-  | DbLogical _ -> "BOOLEAN"
-  | DbMemoIndex _ -> "MEMO INDEX"
-  | DbNumber _ -> "NUMBER"
-  | DbString _ -> "TEXT"
-  | DbTimestamp _ -> "TIMESTAMP"
-
-let db_value_to_string value =
-  match value with
-  | DbDate v -> Printf.sprintf "%Ld" v
-  | DbFloat v -> Printf.sprintf "%f" v
-  | DbLogical v -> Printf.sprintf "%b" v
-  | DbMemoIndex v -> Printf.sprintf "%lld" v
-  | DbNumber v -> Printf.sprintf "%Ld" v
-  | DbString v -> v
-  | DbTimestamp v -> Printf.sprintf "%Ld" v

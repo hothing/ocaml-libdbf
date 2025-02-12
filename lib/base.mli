@@ -51,15 +51,17 @@ val string_of_zstring : string -> string
 
 val dbf_open : string -> dbf_file
 val dbf_close : dbf_file -> unit
-val read_raw_record : dbf_file -> string
 val db_goto : dbf_file -> int -> dbf_file
 val db_skip : dbf_file -> int -> dbf_file
 val db_go_top : dbf_file -> dbf_file
 val db_go_bottom : dbf_file -> dbf_file
 val db_bof : dbf_file -> bool
-val is_deleted : Bitstring.bitstring option -> bool
+
+val read_raw_record : dbf_file -> string
 val read_record :
   ?with_deleted:bool -> dbf_file -> Bitstring.bitstring option
+val is_deleted : Bitstring.bitstring option -> bool
+
 val db_next : dbf_file -> dbf_file
 val db_struct : dbf_file -> dbf_field_descriptor array
 val db_lastrec : dbf_file -> int
@@ -69,3 +71,4 @@ val db_find_record_simple :
   dbf_file -> (Bitstring.bitstring option -> 'a) -> 'a -> int option
 val dbfile_format_of_byte : int -> dbfile_format
 
+val dbf_has_memo_fields : dbf_file -> bool

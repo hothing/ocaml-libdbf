@@ -158,10 +158,8 @@ let decode_struct hdr_size t =
   in
   loop [] 0 |> calculate_fields_offset
 
-(*
-let dbf_has_memo (flds : dbf_field_descriptor list) =
-  List.exists (fun f -> match f.ftype with Memo -> true | _ -> false) flds
-*)
+let dbf_has_memo_fields dbf =
+  Array.exists (fun f -> match f.ftype with Memo -> true | _ -> false) dbf.info.fields  
 
 let dbf_memo_exists filename =
   let bfn = Filename.chop_extension filename in
