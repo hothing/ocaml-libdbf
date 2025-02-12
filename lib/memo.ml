@@ -69,8 +69,8 @@ let load_memo_internal rider (db : Base.dbf_file) index =
 
 let load_memo (db : Base.dbf_file) index =
   match Base.dbfile_format_of_byte db.info.version with
-  | FoxBASE_plus_dBASE_III_PLUS_with_memo ->
+  | DBASE3_with_memo ->
       load_memo_internal read_block_db3 db index
-  | DBASE_IV_with_memo -> 
+  | DBASE4_with_memo -> 
       load_memo_internal read_block_db4 db index
   | _ -> ""

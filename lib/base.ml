@@ -1,13 +1,13 @@
 type dbf_info = {
   version : int;
-  mdate : int * int * int;
+  mdate : date;
   num_records : int;
   hdr_size : int;
   rec_size : int;
   fields : dbf_field_descriptor array;
 }
 
-and date = int * int * int
+and date = { year: int ; month: int; day: int}
 
 and dbf_field_descriptor = {
   name : string;
@@ -37,18 +37,16 @@ type dbf_file = {
 }
 
 type dbfile_format =
-  | FoxBASE
-  | FoxBASE_plus_Dbase_III_plus_no_memo
-  | Visual_FoxPro
-  | Visual_FoxPro_autoincrement_enabled
-  | Visual_FoxPro_with_field_type_Varchar_or_Varbinary
-  | DBASE_IV_SQL_table_files_no_memo
-  | DBASE_IV_SQL_system_files_no_memo
-  | FoxBASE_plus_dBASE_III_PLUS_with_memo
-  | DBASE_IV_with_memo
-  | DBASE_IV_SQL_table_files_with_memo
-  | FoxPro_2_x_or_earlier_with_memo
-  | HiPer_Six_format_with_SMT_memo_file
+  | DBASE2
+  | DBASE3_no_memo
+  | DBASE3_with_memo
+  | VisualFoxPro
+  | VisualFoxPro_autoincrement
+  | VisualFoxPro_Varbinary
+  | DBASE4_with_memo
+  | DBASE4_SQL_table_files_no_memo
+  | DBASE4_SQL_table_files_with_memo
+  | DBASE4_SQL_system_files_no_memo
 
 module Header = struct
   [%%cstruct
@@ -94,9 +92,10 @@ let decode_hdr0 cst =
     {
       version = Header.get_t_version cst;
       mdate =
-        ( 1900 + Header.get_t_mdate_year cst,
-          Header.get_t_mdate_month cst,
-          Header.get_t_mdate_day cst );
+        { year = 1900 + (Header.get_t_mdate_year cst);
+          month = (Header.get_t_mdate_month cst);
+          day = (Header.get_t_mdate_day cst )
+        };
       num_records = Int32.to_int (Header.get_t_num_records cst);
       hdr_size = Header.get_t_hdr_size cst;
       rec_size = Header.get_t_rec_size cst;
@@ -263,16 +262,13 @@ let db_find_record_simple dbf field_rider value =
   db_find_record dbf pred
 
 let dbfile_format_of_byte = function
-  | 0x2 | 0xFB -> FoxBASE
-  | 0x3 -> FoxBASE_plus_Dbase_III_plus_no_memo
-  | 0x30 -> Visual_FoxPro
-  | 0x31 -> Visual_FoxPro_autoincrement_enabled
-  | 0x32 -> Visual_FoxPro_with_field_type_Varchar_or_Varbinary
-  | 0x43 -> DBASE_IV_SQL_table_files_no_memo
-  | 0x63 -> DBASE_IV_SQL_system_files_no_memo
-  | 0x83 -> FoxBASE_plus_dBASE_III_PLUS_with_memo
-  | 0x8B -> DBASE_IV_with_memo
-  | 0xCB -> DBASE_IV_SQL_table_files_with_memo
-  | 0xF5 -> FoxPro_2_x_or_earlier_with_memo
-  | 0xE5 -> HiPer_Six_format_with_SMT_memo_file
+  | 0x3 -> DBASE3_no_memo
+  | 0x30 -> VisualFoxPro
+  | 0x31 -> VisualFoxPro_autoincrement
+  | 0x32 -> VisualFoxPro_Varbinary
+  | 0x43 -> DBASE4_SQL_table_files_no_memo
+  | 0x63 -> DBASE4_SQL_system_files_no_memo
+  | 0x83 -> DBASE3_with_memo
+  | 0x8B -> DBASE4_with_memo
+  | 0xCB -> DBASE4_SQL_table_files_with_memo
   | _ -> raise (DbfDataInvalid "Unknown dbf format")

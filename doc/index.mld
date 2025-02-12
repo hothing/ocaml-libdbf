@@ -1,0 +1,13 @@
+{0 dBase III/IV (.dbf/.dbt) file reader with Memo support}
+
+{1 Base module }
+
+{!module: Dbase4.Base}
+
+{1 Data module}
+
+{!module: Dbase4.Data}
+
+{1 Memo module}
+
+{!module: Dbase4.Memo}

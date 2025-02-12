@@ -1,50 +1,60 @@
-type dbf_info = {               
-  version : int;
-  mdate : int * int * int;
-  num_records : int;
-  hdr_size : int;
-  rec_size : int;
-  fields : dbf_field_descriptor array;
-}
-and date = int * int * int
-and dbf_field_descriptor = {
-  name : string;
-  ftype : dbf_data_type;
-  faddr : int;
-  flen : int;
-  fdec : int;
-  work_area_id : int;
-  flags : int;
-}
-and dbf_data_type =
-    Character
-  | Number
-  | Float
-  | Date
-  | Logical
-  | Memo
-  | General of int
+(** Database file descriptor *)  
 type dbf_file = {
-  name : string;
-  fin : in_channel;
-  memo : in_channel option;
-  info : dbf_info;
-  cri : int;
+  name : string; (** name of dBASE table or filename *)
+  fin : in_channel; (** opened database file channel *)
+  memo : in_channel option; (** opened database memo file channel *)
+  info : dbf_info; (** description of table structure  *)
+  cri : int; (** current record index *)
 }
-type dbfile_format =
-    FoxBASE
-  | FoxBASE_plus_Dbase_III_plus_no_memo
-  | Visual_FoxPro
-  | Visual_FoxPro_autoincrement_enabled
-  | Visual_FoxPro_with_field_type_Varchar_or_Varbinary
-  | DBASE_IV_SQL_table_files_no_memo
-  | DBASE_IV_SQL_system_files_no_memo
-  | FoxBASE_plus_dBASE_III_PLUS_with_memo
-  | DBASE_IV_with_memo
-  | DBASE_IV_SQL_table_files_with_memo
-  | FoxPro_2_x_or_earlier_with_memo
-  | HiPer_Six_format_with_SMT_memo_file
 
+(** Type [dbf_info] describes the DBF file structure  *)
+and dbf_info = {               
+  version : int; (** version/format of the database *)
+  mdate : date; (** modification date *)
+  num_records : int; (** number of records (include deleted) *)
+  hdr_size : int; (** header size (in bytes) of the database file *)
+  rec_size : int; (** the record size in bytes *)
+  fields : dbf_field_descriptor array; (** array of the field descriptors *)
+}
+
+(** Type [date] describes date in format (year , month , day) *)
+and date = { year: int ; month: int; day: int}
+
+(** Database filed descriptor *)
+and dbf_field_descriptor = {
+  name : string; (** name of field *)
+  ftype : dbf_data_type; (** data type of field *)
+  faddr : int; (** offset of the field in a memory chunk *)
+  flen : int; (** length of the field in bytes *)
+  fdec : int; (** position of decimal point *)
+  work_area_id : int; (** work ared identity - IT IS NOT USED *)
+  flags : int; (** internally used flags *)
+}
+
+(** *)
+and dbf_data_type =
+    Character (** one char or ASCII-string up to 255 character *)
+  | Number (** represents any number: integer or real *)
+  | Float (** represents floating-point number *)
+  | Date (** represents DATE in format YYYYMMDD *)
+  | Logical (** logical (boolean) value *)
+  | Memo (** reference to the MEMO file record/chunk *)
+  | General of int (** general purpose *)
+
+
+(** *)
+type dbfile_format =
+  | DBASE2
+  | DBASE3_no_memo
+  | DBASE3_with_memo
+  | VisualFoxPro
+  | VisualFoxPro_autoincrement
+  | VisualFoxPro_Varbinary
+  | DBASE4_with_memo
+  | DBASE4_SQL_table_files_no_memo
+  | DBASE4_SQL_table_files_with_memo
+  | DBASE4_SQL_system_files_no_memo
+  
 exception DbfDataInvalid of string
 
 val string_of_zstring : string -> string
