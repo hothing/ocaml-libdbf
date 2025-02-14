@@ -17,8 +17,8 @@ depends: [
   "ppx_cstruct" {>= "6.2"}
   "bitstring" {>= "4.1"}
   "ppx_bitstring" {>= "4.1"}
-  "odoc" {= with-doc}
-  "alcotest" {= with-test}
+  "odoc" {with-doc}
+  "alcotest" {with-test}
 ]
 build: [
   ["dune" "subst"] {dev}
