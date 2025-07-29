@@ -7,7 +7,7 @@ let test_read_rec () =
   let f_id = create_int_rider dbf 0 in
   let f_name = create_string_rider dbf 1 in
   let f_intversion = create_int_rider_by_name dbf "INTVERSION" in
-  let drec = db_go_top dbf |> read_record in
+  let _, drec = db_go_top dbf |> read_record in
   Alcotest.(check int) "field#1 value" 1 (f_id drec);
   Alcotest.(check string) "field#2 value" "eaf" (f_name drec |> String.trim);
   Alcotest.(check int) "field#3 value" 100 (f_intversion drec);
@@ -30,7 +30,7 @@ let test_read_rec_5 () =
   let f_objtyp = create_int_rider dbf 1 in
   let f_unitid = create_int_rider_by_name dbf "UNITID" in
   let f_unittyp = create_int_rider_by_name dbf "UNITTYP" in
-  let drec = db_go_top dbf |> read_record in
+  let _, drec = db_go_top dbf |> read_record in
   Alcotest.(check int) "field#1 value" 5 (f_id drec);
   Alcotest.(check int) "field#2 value" 1316109 (f_objtyp drec);
   Alcotest.(check int) "field#3 value" 2 (f_unitid drec);
@@ -50,7 +50,7 @@ let test_read_rec_5_1 () =
   let f_unittyp = create_int_rider_by_name dbf "UNITTYP" in
   let f_name = create_string_rider_by_name dbf "NAME" in
   let f_cdate = create_bstring_rider_by_name dbf "CREATE" in
-  let drec = db_goto dbf 3 |> read_record in
+  let _, drec = db_goto dbf 3 |> read_record in
   Alcotest.(check int) "field#1 value" 3 (f_id drec);
   Alcotest.(check int) "field#2 value" 1316109 (f_objtyp drec);
   Alcotest.(check int) "field#3 value" 1 (f_unitid drec);

@@ -4,128 +4,101 @@ open Base
 
 let bs_to_int offset len bs =
   assert (len <= 18);
-  match%bitstring bs with
-  | {| _data:(len * 8):string,offset(offset*8) |} -> (
-      try String.trim _data |> String.cat "0" |> int_of_string
-      with _ ->
-        raise
-          (DbfDataInvalid (Printf.sprintf "Wrong memo index, value = %s" _data))
-      )
-  | {| _ |} -> raise (DbfDataInvalid "field: cannot extract value")
+  let _data = Bytes.sub_string bs offset len in
+  try String.trim _data |> String.cat "0" |> int_of_string
+  with _ ->
+    (
+      let msg = Printf.sprintf "Wrong integer repersenation, value = '%s' [%08d - %06d]" _data offset len in
+      raise (DbfDataInvalid msg)
+    )
 
-(* *)
 let bs_to_bstr offset len bs =
-  assert (len <= 254);
-  match%bitstring bs with
-  | {| _data:(len * 8):string,offset(offset*8) |} -> _data
-  | {| _ |} -> raise (DbfDataInvalid "field: cannot extract value")
+  assert (len <= 255);
+  Bytes.sub_string bs offset len
 
 let bs_to_str offset len bs =
   assert (len <= 255);
-  match%bitstring bs with
-  | {| _data:(len * 8):string,offset(offset*8) |} ->
-      string_of_zstring _data |> String.trim
-  | {| _ |} -> raise (DbfDataInvalid "field: cannot extract value")
+  bs_to_bstr offset len bs |> Base.string_of_zstring |> String.trim
 
 let bs_to_int64 offset len bs =
   assert (len <= 18);
-  let ns = bs_to_str offset len bs |> String.trim in
+  let ns = bs_to_str offset len bs in
   let ns' =
     if String.length ns > 0 then ns else "0" (* field is uninitialized *)
   in
   try Int64.of_string ns'
   with _ ->
-    raise
-      (DbfDataInvalid
-         (Printf.sprintf
-            "Wrong number representation in DBF record field, value = %s" ns))
+    (
+      let msg = Printf.sprintf "Wrong INT64 representation, value = '%s' [%08d - %06d]" ns offset len in
+      raise (DbfDataInvalid msg)
+    )
 
-let bs_to_float64 offset len bs =
+let bs_to_float offset len bs =
   assert (len <= 18);
-  let ns = bs_to_str offset len bs |> String.trim in
+  let ns = bs_to_str offset len bs in
   let ns' =
     if String.length ns > 0 then ns else "0.0" (* field is uninitialized *)
   in
   try Float.of_string ns'
   with _ ->
-    raise
-      (DbfDataInvalid
-         (Printf.sprintf
-            "Wrong number representation in DBF record field, value = %s" ns))
+    (
+      let msg = Printf.sprintf "Wrong FLOAT representation, value = '%s' [%08d - %06d]" ns offset len in
+      raise (DbfDataInvalid msg)
+    )
 
 let bs_to_logical offset len bs =
   assert (len = 1);
-  match%bitstring bs with
-  | {| _data:8:offset(offset*8) |} -> (
-      match Char.chr _data with
-      | ' ' | '?' -> (* uninitialized *) false
-      | 'Y' | 'y' | 'T' | 't' -> true
-      | 'N' | 'n' | 'F' | 'f' -> false
-      | '\001' -> true (* fuck you, Siemens IAD *)
-      | '\000' -> false (* fuck you, Siemens IAD *)
-      | x ->
-          raise
-            (DbfDataInvalid
-               (Printf.sprintf
-                  "Wrong number representation in DBF record field, value = %c"
-                  x)))
-  | {| _ |} -> raise (DbfDataInvalid "field: cannot extract value")
-(* *)
-
-let ftype_to_string ft =
-  match ft with
-  | Character -> "CHAR"
-  | Number -> "NUMBER"
-  | Logical -> "LOGICAL"
-  | Memo -> "MEMO"
-  | Date -> "DATE"
-  | Float -> "FLOAT"
-  | General id -> Printf.sprintf "GENERAL(%d)" id
-
-let get_field rider rbs =
-  match rbs with
-  | Some data -> (* valid record *) rider data
-  | None ->
-      (* deleted record *) raise (DbfDataInvalid "Current record is deleted")
+  match (Bytes.get bs offset) with
+  | ' ' | '?' -> (* uninitialized *) false
+  | 'Y' | 'y' | 'T' | 't' -> true
+  | 'N' | 'n' | 'F' | 'f' -> false
+  | '\001' -> true (* fuck you, Siemens IAD *)
+  | '\000' -> false (* fuck you, Siemens IAD *)
+  | x ->
+     (
+      let msg = Printf.sprintf "Wrong BOOL representation, value = '%c' [%08d - %06d]" x offset len in
+      raise (DbfDataInvalid msg)
+    )
 
 let create_int_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
-  | Number when field.fdec = 0 -> get_field (bs_to_int field.faddr field.flen)
-  | Memo -> get_field (bs_to_int field.faddr field.flen)
+  | Number when field.fdec = 0 -> (bs_to_int field.faddr field.flen)
+  | Memo -> (bs_to_int field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not INTEGER")
 
 let create_int64_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
-  | Number when field.fdec = 0 -> get_field (bs_to_int64 field.faddr field.flen)
+  | Number when field.fdec = 0 -> (bs_to_int64 field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not INTEGER_64")
 
 let create_bstring_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
-  | Character -> get_field (bs_to_bstr field.faddr field.flen)
+  | Character -> (bs_to_bstr field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not CHAR(n)")
 
 let create_string_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
-  | Character -> get_field (bs_to_str field.faddr field.flen)
+  | Character -> (bs_to_str field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not CHAR(n)")
 
 let create_bool_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
-  | Logical -> get_field (bs_to_logical field.faddr field.flen)
+  | Logical -> (bs_to_logical field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not LOGICAl/BOOLEAN")
 
 let create_float_rider (db : dbf_file) field_index =
   let field = db.info.fields.(field_index) in
   match field.ftype with
   | Number when field.fdec > 0 ->
-      get_field (bs_to_float64 field.faddr field.flen)
-  | Float -> get_field (bs_to_float64 field.faddr field.flen)
+      (bs_to_float field.faddr field.flen)
+  | Float -> (bs_to_float field.faddr field.flen)
   | _ -> raise (DbfDataInvalid "Field is not FLOAT")
+
 
 let create_int_rider_by_name (db : dbf_file) fieldname =
   let fid =
@@ -135,7 +108,7 @@ let create_int_rider_by_name (db : dbf_file) fieldname =
   in
   match fid with
   | Some id -> create_int_rider db id
-  | None -> raise (DbfDataInvalid "Fieldname not found")
+  | None -> raise (DbfDataInvalid (Printf.sprintf "Fieldname '%s' not found in %s" fieldname db.name))
 
 let create_int64_rider_by_name (db : dbf_file) fieldname =
   let fid =
@@ -186,4 +159,3 @@ let create_bool_rider_by_name (db : dbf_file) fieldname =
   match fid with
   | Some id -> create_bool_rider db id
   | None -> raise (DbfDataInvalid "Fieldname not found")
-    

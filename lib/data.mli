@@ -1,29 +1,27 @@
 (* Data.ml *)
 open Base
 
-val ftype_to_string : dbf_data_type -> string
-val get_field : ('a -> 'b) -> 'a option -> 'b
 val create_int_rider :
-  dbf_file -> int -> (bytes * int * int) option -> int
+  dbf_file -> int -> bytes -> int
 val create_int64_rider :
-  dbf_file -> int -> (bytes * int * int) option -> int64
+  dbf_file -> int -> bytes -> int64
 val create_bstring_rider :
-  dbf_file -> int -> (bytes * int * int) option -> string
+  dbf_file -> int -> bytes -> string
 val create_string_rider :
-  dbf_file -> int -> (bytes * int * int) option -> string
+  dbf_file -> int -> bytes -> string
 val create_bool_rider :
-  dbf_file -> int -> (bytes * int * int) option -> bool
+  dbf_file -> int -> bytes -> bool
 val create_float_rider :
-  dbf_file -> int -> (bytes * int * int) option -> float
+  dbf_file -> int -> bytes -> float
 val create_int_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> int
+  dbf_file -> string -> bytes -> int
 val create_int64_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> int64
+  dbf_file -> string -> bytes -> int64
 val create_float64_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> float
+  dbf_file -> string -> bytes -> float
 val create_string_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> string
+  dbf_file -> string -> bytes -> string
 val create_bstring_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> string
+  dbf_file -> string -> bytes -> string
 val create_bool_rider_by_name :
-  dbf_file -> string -> (bytes * int * int) option -> bool
+  dbf_file -> string -> bytes -> bool

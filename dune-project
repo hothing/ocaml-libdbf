@@ -4,7 +4,7 @@
 
 (generate_opam_files true)
 
-(version 0.1.5)
+(version 0.2.0)
 
 (source
  (github hothing/ocaml-libdbf))
@@ -22,7 +22,7 @@
  (name dbase4)
  (synopsis "A DBF/DBT files reader library")
  (description "A DBF reader library with MEMO support and sequental record access")
- (depends (ocaml (>= 5.2)) (cstruct (>= 6.2)) (ppx_cstruct (>= 6.2)) (bitstring (>= 4.1)) (ppx_bitstring (>= 4.1)) (odoc :with-doc) (alcotest :with-test))
+ (depends (ocaml (>= 5.2)) (odoc :with-doc) (alcotest :with-test))
  (tags
   ("xBASE" "DBF" "data access")))
 

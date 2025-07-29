@@ -32,7 +32,7 @@ let read_block_db3 (db : Base.dbf_file) index =
         read_cblock_chn memo_block_size md 0
           (Bytes.make (memo_block_size * 4) '\026')
       in
-      Some (Bytes.to_string data |> Bitstring.bitstring_of_string)
+      Some (data)
   | None -> None
 
 (******* dBase IV          ********)
@@ -44,33 +44,41 @@ let read_block_db4 (db : Base.dbf_file) index =
         let pos = calculate_chunk_offset memo_block_size index in
         In_channel.seek md (Int64.of_int pos);
         let hdr_size = 8 in
-        let chunk = Bitstring.bitstring_of_chan_max md hdr_size in
-        match%bitstring chunk with
-        | {| _mark:32:littleendian,check(_mark = Int32.of_int 589823); _len:32:littleendian,bind(Int32.to_int _len)|}
-          ->
+        let chunk = Base.read_chunk md hdr_size in
+        let _mark = Bytes.get_int32_le chunk 0 |> Int32.to_int in
+        let _len = Int32.to_int (Bytes.get_int32_le chunk 4) in
+        (*assert(_mark = 589823, _msg); *)
+        let _mark_check = 589823 in
+        if _mark = _mark_check then
+          (
             In_channel.seek md (Int64.of_int (pos + hdr_size));
-            let _data = Bitstring.bitstring_of_chan_max md (_len - hdr_size) in
+            let _data = Base.read_chunk md (_len - hdr_size) in
             Some _data
-        | {| _next_free:32:littleendian,bind(Int32.to_int _next_free); _next_used:32:littleendian,bind(Int32.to_int _next_used)|}
-          ->
-            None
-        | {| _ |} -> failwith "Wrong Memo chunk")
+          )
+        else 
+          ( 
+            Printf.eprintf 
+            "[MEMO.ERROR]: _mark expected 0x%x, got 0x%x at pos = 0x%x\n" 
+            _mark_check _mark pos;          
+            None 
+          );
+      )
       else None
   | None -> None
 
 (* --------- *)
 let load_memo_internal rider (db : Base.dbf_file) index =
-  let memo_to_dbval (obs : Bitstring.t option) =
+  let memo_to_dbval (obs : Bytes.t option) =
     match obs with
-    | Some data -> Bitstring.string_of_bitstring data
-    | None -> ""
+    | Some data -> data
+    | None -> Bytes.empty
   in
   memo_to_dbval (rider db index)
 
 let load_memo (db : Base.dbf_file) index =
   match db.info.version with
-  | DBASE3_with_memo ->
+  | 0x83 ->
       load_memo_internal read_block_db3 db index
-  | DBASE4_with_memo -> 
+  | 0x8b -> 
       load_memo_internal read_block_db4 db index
-  | _ -> ""
+  | _ -> failwith "This dBase version is not supported"

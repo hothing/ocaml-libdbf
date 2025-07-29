@@ -1,83 +1,87 @@
-(** Database file descriptor *)  
+(** DBF file handle *)
 type dbf_file = {
-  name : string; (** name of dBASE table or filename *)
-  fin : in_channel; (** opened database file channel *)
-  memo : in_channel option; (** opened database memo file channel *)
-  info : dbf_info; (** description of table structure  *)
-  cri : int; (** current record index *)
+  name : string; (** name of table (.dbf) *)
+  fin : in_channel; (** opened i/o stream for dbf file *)
+  memo : in_channel option; (** optional i/o stream for memo file - if exists *)
+  info : dbf_info; (** description of DBF table *)
+  cri : int; (** Current Rider Index - ID of current record in the table *)
 }
 
-(** Type [dbf_info] describes the DBF file structure  *)
-and dbf_info = {               
-  version : dbfile_format; (** version/format of the database *)
+(** descriptor of the internal dbf file layout *)
+and dbf_info = {
+  version : int; (** version of the file format *)
   mdate : date; (** modification date *)
-  num_records : int; (** number of records (include deleted) *)
-  hdr_size : int; (** header size (in bytes) of the database file *)
-  rec_size : int; (** the record size in bytes *)
-  fields : dbf_field_descriptor array; (** array of the field descriptors *)
+  num_records : int; (** number of records *)
+  hdr_size : int; (** file header size (in bytes) *)
+  rec_size : int; (** file record size (in bytes) *)
+  fields : dbf_field_descriptor array; (** fields descriptors *)
 }
 
-(** Type [date] describes date in format (year , month , day) *)
-and date = { year: int ; month: int; day: int}
+(** primitive structure to hold date *)
+and date = { year : int; month : int; day : int; }
 
-(** Database filed descriptor *)
+(** DBF field descriptor *) 
 and dbf_field_descriptor = {
   name : string; (** name of field *)
-  ftype : dbf_data_type; (** data type of field *)
-  faddr : int; (** offset of the field in a memory chunk *)
-  flen : int; (** length of the field in bytes *)
-  fdec : int; (** position of decimal point *)
-  work_area_id : int; (** work ared identity - IT IS NOT USED *)
-  flags : int; (** internally used flags *)
+  ftype : dbf_data_type; (** DBF data type *)
+  faddr : int; (** address of field - it's using as offset in the raw record *)
+  flen : int; (** length of field *)
+  fdec : int; (** number after point for number data type *)
+  work_area_id : int; (** reserved *)
+  flags : int; (** some flags (not used) *)
 }
 
-(** *)
+(** internal DBF data type *)
 and dbf_data_type =
-    Character (** one char or ASCII-string up to 255 character *)
-  | Number (** represents any number: integer or real *)
-  | Float (** represents floating-point number *)
-  | Date (** represents DATE in format YYYYMMDD *)
-  | Logical (** logical (boolean) value *)
-  | Memo (** reference to the MEMO file record/chunk *)
-  | General of int (** general purpose *)
+    Character (** character (flen = 1) or string *)
+  | Number (** number: integer (fdec = 0) or fixed point real *)
+  | Float (** 32-bits floating point number *)
+  | Date (** date *)
+  | Logical (** boolean / logical value *)
+  | Memo (** Text Large Object or Binary Large Object*)
+  | General of int (** user-defined *)
 
-
-(** *)
-and dbfile_format =
-  | DBASE2
-  | DBASE3_no_memo
-  | DBASE3_with_memo
-  | VisualFoxPro
-  | VisualFoxPro_autoincrement
-  | VisualFoxPro_Varbinary
-  | DBASE4_with_memo
-  | DBASE4_SQL_table_files_no_memo
-  | DBASE4_SQL_table_files_with_memo
-  | DBASE4_SQL_system_files_no_memo
-  
+(** Exception means: internal data representation is invalid *)
 exception DbfDataInvalid of string
 
-val string_of_zstring : string -> string
-
+(** open DBF-file *)
 val dbf_open : string -> dbf_file
+
+(** close DBF-file *)
 val dbf_close : dbf_file -> unit
+
+(** move cursor to the n-th record, absolute *)
 val db_goto : dbf_file -> int -> dbf_file
+
+(** move cursor to the record after n-th records from the current, relative *)
 val db_skip : dbf_file -> int -> dbf_file
+
+(** move to the first record *)
 val db_go_top : dbf_file -> dbf_file
+
+(** move to the last record *)
 val db_go_bottom : dbf_file -> dbf_file
+
+(** check the end of file *)
 val db_bof : dbf_file -> bool
 
-val read_raw_record : dbf_file -> string
-val read_record :
-  ?with_deleted:bool -> dbf_file -> Bitstring.bitstring option
-val is_deleted : Bitstring.bitstring option -> bool
+(** check either has MEMO-extention or not *)
+val db_has_memo_fields : dbf_file -> bool
 
-val db_next : dbf_file -> dbf_file
-val db_struct : dbf_file -> dbf_field_descriptor array
-val db_lastrec : dbf_file -> int
-val db_find_record :
-  dbf_file -> (Bitstring.bitstring option -> bool) -> int option
-val db_find_record_simple :
-  dbf_file -> (Bitstring.bitstring option -> 'a) -> 'a -> int option
+val db_memo_exists : string -> string option
 
-  val db_has_memo_fields : dbf_file -> bool
+(** read raw (undecoded) record *)
+val read_record : ?with_deleted:bool -> dbf_file -> bool * bytes
+
+(** make an iterartor over all records *)
+val iterator : dbf_file -> (int * bool * bytes) Seq.t
+
+(** make an iterartor over all existed (not deleted) records *)
+val all_records : dbf_file -> bytes Seq.t
+
+(** FOR INTERNAL USE ONLY - translate binary ASCIIZ-string *)
+val string_of_zstring : string -> string
+
+(** FOR INTERNAL USE ONLY - read chunk of data from the file *)
+val read_chunk : In_channel.t -> int -> bytes
+
