@@ -1,7 +1,5 @@
 (tests
  (names test_base test_base2 test_memo)
- (libraries alcotest bitstring dbase4)
- (preprocess
-  (pps ppx_bitstring))
+ (libraries alcotest dbase4)
  (deps
   (glob_files_rec "samples/*")))
